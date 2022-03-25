@@ -1,0 +1,4 @@
+Flask
+jmespath
+requests
+xmltodict
