@@ -87,14 +87,14 @@ def metrics():
     try: 
         _status_code = str(_resp.status_code)
     except:
-        _metrics.append('p2000_scrape_counter{status=failed}=' + str(_scrape_counter))
+        _metrics.append('p2000_scrape_counter{status=failed} ' + str(_scrape_counter))
         return "\n".join(unique(_metrics))
 
     _response_time = str(_resp.elapsed.microseconds / 1000000)
     _response_size = str(len(_resp.text))
-    _metrics.append('p2000_scrape_response_time_seconds{status=' + _status_code + '}=' + _response_time)
-    _metrics.append('p2000_scrape_counter{status=' + _status_code + '}=' + str(_scrape_counter))
-    _metrics.append('p2000_scrape_response_size_bytes{status=' + _status_code + '}=' + _response_size)
+    _metrics.append('p2000_scrape_response_time_seconds{status=' + _status_code + '} ' + _response_time)
+    _metrics.append('p2000_scrape_counter{status=' + _status_code + '} ' + str(_scrape_counter))
+    _metrics.append('p2000_scrape_response_size_bytes{status=' + _status_code + '} ' + _response_size)
     
     if not search('^2\d*', str(_resp.status_code)):
         _metrics.append("# Failed! No 2xx status code.")
@@ -137,11 +137,11 @@ def metrics():
                 _seconds_since_first_alert = _utc_time_now - _utc_time_event
                 print("_utc_time_event:%s, _utc_time_now:%s, seconds_since_first_alert:%s\n" % (_utc_time_event,_utc_time_now,_seconds_since_first_alert))
                 
-                _metrics.append('p2000_seconds_since_event{title="' + _title + '",link="' + _link +'",description="' + _description + '",pubdate="' + _pubdate + '"}=' + str(int(_seconds_since_first_alert)))
+                _metrics.append('p2000_seconds_since_event{title="' + _title + '",link="' + _link +'",description="' + _description + '",pubdate="' + _pubdate + '"} ' + str(int(_seconds_since_first_alert)))
 
                 _event_counter.update({ _guid:"1"})
 
-    _metrics.append('p2000_event_counter=' + str(len(_event_counter)))        
+    _metrics.append('p2000_event_counter ' + str(len(_event_counter)))        
     
     return "\n".join(unique(_metrics))
 

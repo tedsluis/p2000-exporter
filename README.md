@@ -50,13 +50,13 @@ Notes:
 # curl http://localhost:2000/metrics
 
 # P2000 events
-p2000_scrape_response_time_seconds{status=200}=0.395585
-p2000_scrape_counter{status=200}=3827
-p2000_scrape_response_size_bytes{status=200}=13025
+p2000_scrape_response_time_seconds{status=200} 0.395585
+p2000_scrape_counter{status=200} 3827
+p2000_scrape_response_size_bytes{status=200} 13025
 # Succesfull rss feed in response.
-p2000_seconds_since_event{title="P 2 BDH-04 DV aan derden Bernhardhof Gouda 163130",link="https://www.alarmeringdroid.nl/toonmelding/18666985",description="Brandweer: : GOUDA",pubdate="Thu, 24 Mar 2022 18:03:20 +0000"}=68798
-p2000_seconds_since_event{title="P 1 BDH-03 BR woning Willem van der Madeweg Leiden 164252 169192 164230 164330",link="https://www.alarmeringdroid.nl/toonmelding/18667079",description="Brandweer: : LEIDEN",pubdate="Thu, 24 Mar 2022 18:27:37 +0000"}=67557
-p2000_event_counter=2
+p2000_seconds_since_event{title="P 2 BDH-04 DV aan derden Bernhardhof Gouda 163130",link="https://www.alarmeringdroid.nl/toonmelding/18666985",description="Brandweer: : GOUDA",pubdate="Thu, 24 Mar 2022 18:03:20 +0000"} 68798
+p2000_seconds_since_event{title="P 1 BDH-03 BR woning Willem van der Madeweg Leiden 164252 169192 164230 164330",link="https://www.alarmeringdroid.nl/toonmelding/18667079",description="Brandweer: : LEIDEN",pubdate="Thu, 24 Mar 2022 18:27:37 +0000"} 67557
+p2000_event_counter 2
 ````
 
 ### Config
