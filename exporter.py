@@ -111,13 +111,13 @@ def metrics():
     for _key in _meldingen:
         
         try:
-            _title = str(_key["title"])
+            _title = str(_key["title"]).replace(' ','_')
         except:
             print("Empty title! key: %s" % _key)
             continue
 
-        _description = str(_key["description"])
-        _link = str(_key["link"])
+        _description = str(_key["description"]).replace(' ','_').replace(':','')
+        _link = str(_key["link"]).replace('https://', '')
         _pubdate = str(_key["pubDate"])
         _guid = str(_key['guid'])
 
@@ -137,13 +137,13 @@ def metrics():
                 _seconds_since_first_alert = _utc_time_now - _utc_time_event
                 print("_utc_time_event:%s, _utc_time_now:%s, seconds_since_first_alert:%s\n" % (_utc_time_event,_utc_time_now,_seconds_since_first_alert))
                 
-                _metrics.append('p2000_seconds_since_event{title="' + _title + '",link="' + _link +'",description="' + _description + '",pubdate="' + _pubdate + '"} ' + str(int(_seconds_since_first_alert)))
+                _metrics.append('p2000_seconds_since_event{title="' + _title + '",link="' + _link +'",description="' + _description + '",pubdate="' + _pubdate.replace(' ','_').replace(',','').replace('_+0000','') + '"} ' + str(int(_seconds_since_first_alert + 3600)))
 
                 _event_counter.update({ _guid:"1"})
 
     _metrics.append('p2000_event_counter ' + str(len(_event_counter)))        
     
-    return "\n".join(unique(_metrics))
+    return "\n".join(unique(_metrics)) + '\n'
 
 @app.route('/config', methods=['GET', 'POST'])
 def config():
