@@ -141,7 +141,7 @@ def metrics():
 
                 _event_counter.update({ _guid:"1"})
 
-    _metrics.append('p2000_event_counter{}=' + str(len(_event_counter)))        
+    _metrics.append('p2000_event_counter=' + str(len(_event_counter)))        
     
     return "\n".join(unique(_metrics))
 
