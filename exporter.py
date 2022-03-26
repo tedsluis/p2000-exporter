@@ -87,14 +87,14 @@ def metrics():
     try: 
         _status_code = str(_resp.status_code)
     except:
-        _metrics.append('p2000_scrape_counter{status=failed} ' + str(_scrape_counter))
+        _metrics.append('p2000_scrape_counter{status="failed"} ' + str(_scrape_counter))
         return "\n".join(unique(_metrics))
 
     _response_time = str(_resp.elapsed.microseconds / 1000000)
     _response_size = str(len(_resp.text))
-    _metrics.append('p2000_scrape_response_time_seconds{status=' + _status_code + '} ' + _response_time)
-    _metrics.append('p2000_scrape_counter{status=' + _status_code + '} ' + str(_scrape_counter))
-    _metrics.append('p2000_scrape_response_size_bytes{status=' + _status_code + '} ' + _response_size)
+    _metrics.append('p2000_scrape_response_time_seconds{status="' + _status_code + '"} ' + _response_time)
+    _metrics.append('p2000_scrape_counter{status="' + _status_code + '"} ' + str(_scrape_counter))
+    _metrics.append('p2000_scrape_response_size_bytes{status="' + _status_code + '"} ' + _response_size)
     
     if not search('^2\d*', str(_resp.status_code)):
         _metrics.append("# Failed! No 2xx status code.")
@@ -116,8 +116,8 @@ def metrics():
             print("Empty title! key: %s" % _key)
             continue
 
-        _description = str(_key["description"]).replace(' ','_').replace(':','')
-        _link = str(_key["link"]).replace('https://', '')
+        _description = str(_key["description"]).replace(' ','_').replace(':','').replace('__','_')
+        _link = str(_key["link"])
         _pubdate = str(_key["pubDate"])
         _guid = str(_key['guid'])
 
