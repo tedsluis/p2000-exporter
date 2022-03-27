@@ -56,6 +56,7 @@ _event_counter = {}
 _response_time = ""
 _status_code = ""
 _response_size = ""
+_utc_time_last_scrape = datetime.now().timestamp()
 
 def unique(_list):
     _unique_list = []
@@ -73,9 +74,12 @@ def metrics():
     global _response_time
     global _status_code
     global _response_size
+    global _utc_time_last_scrape
 
     _scrape_counter = _scrape_counter + 1
     _metrics=["# P2000 events"]
+
+    _utc_time_last_scrape =  datetime.now().timestamp()
     
     try:
         _resp = requests.get(url=f"https://"+ _url)
@@ -133,9 +137,8 @@ def metrics():
                 # _pubdate_string = " ".join(_pubdate.split(' ')[1:5])
                 
                 _utc_time_event = datetime.strptime(" ".join(_pubdate.split(' ')[1:5]), "%d %b %Y %H:%M:%S").timestamp()
-                _utc_time_now =  datetime.now().timestamp()
-                _seconds_since_first_alert = _utc_time_now - _utc_time_event
-                print("_utc_time_event:%s, _utc_time_now:%s, seconds_since_first_alert:%s\n" % (_utc_time_event,_utc_time_now,_seconds_since_first_alert))
+                _seconds_since_first_alert = _utc_time_last_scrape - _utc_time_event
+                print("_utc_time_event:%s, _utc_time_last_scrape:%s, seconds_since_first_alert:%s\n" % (_utc_time_event,_utc_time_last_scrape,_seconds_since_first_alert))
                 
                 _metrics.append('p2000_seconds_since_event{title="' + _title + '",link="' + _link +'",description="' + _description + '",pubdate="' + _pubdate.replace(' ','_').replace(',','').replace('_+0000','') + '"} ' + str(int(_seconds_since_first_alert + 3600)))
 
@@ -147,7 +150,40 @@ def metrics():
 
 @app.route('/config', methods=['GET', 'POST'])
 def config():
-    _config = '\nConfig\n\n    url: ' + _url + '\n    matches: ' + ",".join(_matches) + '\n    scrape counter: ' + str(_scrape_counter) + '\n    event counter: ' + str(len(_event_counter)) + '\n    http_code: ' + _status_code + '\n    response time: ' + _response_time+' sec\n    response size: ' + _response_size + ' bytes\n\n'
+    _seconds_since_previous_scrape = datetime.now().timestamp() - _utc_time_last_scrape
+    _config = '''<div width: 100%;>
+      <h2>
+        <a href="/metrics">p2000-exporter (1/1 up)</a>
+      </h2>
+      <table border="1" bordercolor=gray cellpadding="3" cellspacing="0" style="width: 100%" >
+        <thead>
+          <tr align="left">
+            <th>Endpoint</th>
+            <th>Http status code</th>
+            <th>Last scrape</th>
+            <th>Response time</th>
+            <th>Response size</th>
+            <th>Scrape count</th>
+            <th>Event count</th>
+            <th>Matches</th>
+
+          </tr>
+        </thead>
+        <tbody>
+          <tr bgcolor="#dee2e6">
+            <td><a href="https://''' + _url +'''">https://''' + _url + '''</a><br></td>
+            <td>''' + _status_code + '''</td>
+            <td>''' + str(_seconds_since_previous_scrape) + ''' sec ago</td>
+            <td>''' + _response_time + ''' sec</td>
+            <td>''' + _response_size + ''' bytes</td>
+            <td>''' + str(_scrape_counter) + '''</td>
+            <td>''' + str(len(_event_counter)) + '''</td>
+            <td>''' + ",".join(_matches) + '''</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+'''
     return _config
 
 if __name__ == '__main__':
