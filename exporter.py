@@ -140,7 +140,7 @@ def metrics():
                 _seconds_since_first_alert = _utc_time_last_scrape - _utc_time_event
                 print("_utc_time_event:%s, _utc_time_last_scrape:%s, seconds_since_first_alert:%s\n" % (_utc_time_event,_utc_time_last_scrape,_seconds_since_first_alert))
                 
-                _metrics.append('p2000_seconds_since_event{title="' + _title + '",link="' + _link +'",description="' + _description + '",pubdate="' + _pubdate.replace(' ','_').replace(',','').replace('_+0000','') + '"} ' + str(int(_seconds_since_first_alert + 3600)))
+                _metrics.append('p2000_seconds_since_event{title="' + _title + '",link="' + _link +'",description="' + _description + '",pubdate="' + _pubdate.replace(' ','_').replace(',','').replace('_+0000','') + '"} ' + str(int(_seconds_since_first_alert + 7200)))
 
                 _event_counter.update({ _guid:"1"})
 
