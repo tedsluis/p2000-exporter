@@ -136,7 +136,7 @@ def metrics():
                 # "guid": "6c841365efffa86ff87809eb1c9ef5cc"
                 # _pubdate_string = " ".join(_pubdate.split(' ')[1:5])
                 
-                _utc_time_event = datetime.strptime(" ".join(_pubdate.split(' ')[1:5]), "%d %b %Y %H:%M:%S").timestamp()
+                _utc_time_event = datetime.strptime(" ".join(_pubdate.split(' ')[1:5]), "%d %b %Y %H:%M:%S").timestamp() - 7200
                 _seconds_since_first_alert = _utc_time_last_scrape - _utc_time_event
                 print("_utc_time_event:%s, _utc_time_last_scrape:%s, seconds_since_first_alert:%s\n" % (_utc_time_event,_utc_time_last_scrape,_seconds_since_first_alert))
                 
@@ -151,38 +151,40 @@ def metrics():
 @app.route('/config', methods=['GET', 'POST'])
 def config():
     _seconds_since_previous_scrape = datetime.now().timestamp() - _utc_time_last_scrape
-    _config = '''<div width: 100%;>
-      <h2>
-        <a href="/metrics">p2000-exporter (1/1 up)</a>
-      </h2>
-      <table border="1" bordercolor=gray cellpadding="3" cellspacing="0" style="width: 100%" >
-        <thead>
-          <tr align="left">
-            <th>Endpoint</th>
-            <th>Http status code</th>
-            <th>Last scrape</th>
-            <th>Response time</th>
-            <th>Response size</th>
-            <th>Scrape count</th>
-            <th>Event count</th>
-            <th>Matches</th>
-
-          </tr>
-        </thead>
-        <tbody>
-          <tr bgcolor="#dee2e6">
-            <td><a href="https://''' + _url +'''">https://''' + _url + '''</a><br></td>
-            <td>''' + _status_code + '''</td>
-            <td>''' + str(_seconds_since_previous_scrape) + ''' sec ago</td>
-            <td>''' + _response_time + ''' sec</td>
-            <td>''' + _response_size + ''' bytes</td>
-            <td>''' + str(_scrape_counter) + '''</td>
-            <td>''' + str(len(_event_counter)) + '''</td>
-            <td>''' + ",".join(_matches) + '''</td>
-          </tr>
-        </tbody>
-      </table>
+    _config = '''<!DOCTYPE html>
+<html>
+    <div width: 100%;>
+        <h2>
+            <a href="/metrics">p2000-exporter (1/1 up)</a>
+        </h2>
+        <table border="1" bordercolor=gray cellpadding="3" cellspacing="0" style="width: 100%" >
+            <thead>
+                <tr align="left">
+                    <th>Endpoint</th>
+                    <th>HTTP status code</th>
+                    <th>Last scrape</th>
+                    <th>Response time</th>
+                    <th>Response size</th>
+                    <th>Scrape count</th>
+                    <th>Event count</th>
+                    <th>Matches</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr bgcolor="#dee2e6">
+                    <td><a href="https://''' + _url +'''">https://''' + _url + '''</a><br></td>
+                    <td>''' + _status_code + '''</td>
+                    <td>''' + str(_seconds_since_previous_scrape) + ''' sec ago</td>
+                    <td>''' + _response_time + ''' sec</td>
+                    <td>''' + _response_size + ''' bytes</td>
+                    <td>''' + str(_scrape_counter) + '''</td>
+                    <td>''' + str(len(_event_counter)) + '''</td>
+                    <td>''' + ",".join(_matches) + '''</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
+</html>
 '''
     return _config
 
