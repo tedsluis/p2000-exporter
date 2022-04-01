@@ -12,7 +12,7 @@ prometheus metrics exporter for P2000
 
 ````bash
 # podman run --rm --name p2000-exporter -p 2000:2000 localhost/p2000-exporter \
-          --matches=leiden,gouda \
+          --filter=leiden,gouda \
           --url=www.alarmeringdroid.nl/rss/d0a55295 \
           --port=2000
 ````
@@ -26,12 +26,12 @@ Help
 
 Execute:
    # exporter.py [-u <url>|--url=<url>] \
-                 [-m <match>[,<match>]|--matches=<match>[,<match>]] \
+                 [-m <location>[,<location>]|--filter=<location>[,<location>]] \
                  [-p <port>|--port=<port>]
                  [-h|--help]
 
    # exporter.py --url=www.alarmeringdroid.nl/rss/d0a55295 \
-                 --matches=schoonhoven,leiden \
+                 --filter=schoonhoven,leiden \
                  --port=2000
 
 Endpoints:
@@ -40,7 +40,7 @@ Endpoints:
 
 Notes:
     Get your own rss url at https://www.alarmeringdroid.nl/rssbuilder
-    --matches is a list of locations.
+    --filter is a list of locations.
     Default port: 2000
 ````
 
@@ -61,7 +61,7 @@ p2000_scrape_response_time_seconds{status=200} 0.395585
 p2000_scrape_response_size_bytes{status=200} 13025
 # HELP p2000_seconds_since_previous_scrape Number of seconds
 # TYPE p2000_seconds_since_previous_scrape gauge
-p2000_seconds_since_previous_scrape{status="200",description="succesfull"}
+p2000_seconds_since_previous_scrape{status="200",description="succesfull"} 15.32132
 # HELP p2000_seconds_since_event Number of seconds
 # TYPE p2000_seconds_since_event gauge
 p2000_seconds_since_event{title="P 2 BDH-04 DV aan derden Bernhardhof Gouda 163130",link="https://www.alarmeringdroid.nl/toonmelding/18666985",description="Brandweer: : GOUDA",pubdate="Thu, 24 Mar 2022 18:03:20 +0000"} 68798
