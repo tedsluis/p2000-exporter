@@ -10,26 +10,26 @@ def help():
     print("\nHelp\n")
     print("Execute:")
     print("    exporter.py [-u <url>|--url=<url>] \ ")
-    print("                [-m <match>[,<match>]|--matches=<match>[,<match>]] \ ")
+    print("                [-m <location>[,<location>]|--filter=<location>[,<location>]] \ ")
     print("                [-p <port>|--port=<port>] \ ")
     print("                [-h|--help]")
     print("    exporter.py --url=www.alarmeringdroid.nl/rss/d0a55295 \ ")
-    print("                --matches=schoonhoven,leiden \ ") 
+    print("                --filter=schoonhoven,leiden \ ") 
     print("                --port=2000\n")
     print("Endpoints:")
     print("    # curl http://127.0.0.1:2000/metrics")
     print("    # curl http://127.0.0.1:2000/config\n")
     print("notes:")
     print("    Get your own rss url at https://www.alarmeringdroid.nl/rssbuilder")
-    print("    --matches is a list of locations.")
+    print("    --filter is a list of locations.")
     print("    Default port: 2000\n")
 
 def parameters(argv):
-    _matches = [""]
+    _filter = [""]
     _url = "www.alarmeringdroid.nl/rss/d0a55295"
     _port = 2000
     try:
-        opts, args = getopt.getopt(argv,"u:m:p:h",["url=","matches=","port="])
+        opts, args = getopt.getopt(argv,"u:m:p:h",["url=","filter=","port="])
     except getopt.GetoptError:
         help()
         sys.exit(2)
@@ -39,17 +39,17 @@ def parameters(argv):
             sys.exit()
         elif opt in ("-u", "--url"):
             _url = arg
-        elif opt in ("-m", "--matches"):
-            _matches = arg.split(',')
+        elif opt in ("-m", "--filter"):
+            _filter = arg.split(',')
         elif opt in ("-p", "--port"):
             _port = arg
     print ('url is:', _url)
-    print ('matches is:', _matches)
+    print ('filter is:', _filter)
     print ('port is:', _port)
-    return (_url,_matches,_port)
+    return (_url,_filter,_port)
 
-_url,_matches,_port = parameters(sys.argv[1:])
-print("matches: %s, url: %s, port: %s\n" % (_matches,_url,_port))
+_url,_filter,_port = parameters(sys.argv[1:])
+print("filter: %s, url: %s, port: %s\n" % (_filter,_url,_port))
 
 _scrape_counter = 0
 _event_counter = {}
@@ -139,9 +139,9 @@ def metrics():
         _pubdate = str(_key["pubDate"])
         _guid = str(_key['guid'])
 
-        for _match in _matches:
-            print("title=%s, description=%s, match %s" % (_title,_description, _match))
-            if search(_match.lower(), _title.lower()) or search(_match.lower(), _description.lower()):
+        for _location in _filter:
+            print("title=%s, description=%s, location %s" % (_title,_description, _location))
+            if search(_location.lower(), _title.lower()) or search(_location.lower(), _description.lower()):
                 # "title": "P 2 BDH-07 BR afval Broekpolder Warmond 164230",
                 # "description": "Brandweer: : WARMOND",
                 # "link": "https://www.alarmeringdroid.nl/toonmelding/18645535",
@@ -186,7 +186,7 @@ def config():
                     <th>Response size</th>
                     <th>Scrape count</th>
                     <th>Event count</th>
-                    <th>Matches</th>
+                    <th>filter</th>
                 </tr>
             </thead>
             <tbody>
@@ -198,7 +198,7 @@ def config():
                     <td>''' + _response_size + ''' bytes</td>
                     <td>''' + str(_scrape_counter) + '''</td>
                     <td>''' + str(len(_event_counter)) + '''</td>
-                    <td>''' + ",".join(_matches) + '''</td>
+                    <td>''' + ",".join(_filter) + '''</td>
                 </tr>
             </tbody>
         </table>
