@@ -77,16 +77,18 @@ def metrics():
     global _utc_time_last_scrape
 
     _scrape_counter = _scrape_counter + 1
-    _metrics=["# P2000 events"]
+    _metrics=[]
 
-    _utc_time_last_scrape =  datetime.now().timestamp()
+
+    _metrics.append('# HELP p2000_scrape_counter Number of scrapes since exporter started')
+    _metrics.append('# TYPE p2000_scrape_counter counter')
     
     try:
         _resp = requests.get(url=f"https://"+ _url)
 
     except requests.exceptions.RequestException as e:  # This is the correct syntax
         
-        _metrics.append("# Failed! No repsonse.")
+        _metrics.append('p2000_scrape_counter{status="exception"} ' + str(_scrape_counter))
 
     try: 
         _status_code = str(_resp.status_code)
@@ -94,23 +96,35 @@ def metrics():
         _metrics.append('p2000_scrape_counter{status="failed"} ' + str(_scrape_counter))
         return "\n".join(unique(_metrics))
 
-    _response_time = str(_resp.elapsed.microseconds / 1000000)
-    _response_size = str(len(_resp.text))
-    _metrics.append('p2000_scrape_response_time_seconds{status="' + _status_code + '"} ' + _response_time)
     _metrics.append('p2000_scrape_counter{status="' + _status_code + '"} ' + str(_scrape_counter))
+
+    _response_time = str(_resp.elapsed.microseconds / 1000000)
+    _metrics.append('# HELP p2000_scrape_response_time_seconds Number of seconds elapsed')
+    _metrics.append('# TYPE p2000_scrape_response_time_seconds gauge')
+    _metrics.append('p2000_scrape_response_time_seconds{status="' + _status_code + '"} ' + _response_time)
+    
+    
+    _response_size = str(len(_resp.text))
+    _metrics.append('# HELP p2000_scrape_response_size_bytes Number of bytes')
+    _metrics.append('# TYPE p2000_scrape_response_size_bytes gauge')
     _metrics.append('p2000_scrape_response_size_bytes{status="' + _status_code + '"} ' + _response_size)
     
+    _seconds_since_previous_scrape = datetime.now().timestamp() - _utc_time_last_scrape
+    _utc_time_last_scrape =  datetime.now().timestamp()
+    _metrics.append("# HELP p2000_seconds_since_previous_scrape Number of seconds")
+    _metrics.append("# TYPE p2000_seconds_since_previous_scrape gauge")
+
     if not search('^2\d*', str(_resp.status_code)):
-        _metrics.append("# Failed! No 2xx status code.")
+        _metrics.append('p2000_seconds_since_previous_scrape{status="' + _status_code + '",description="failed"} ' + str(_seconds_since_previous_scrape))
         return "\n".join(unique(_metrics))
 
     try:
         _meldingen = json.loads(json.dumps(xmltodict.parse(_resp.text)))["rss"]["channel"]["item"]
     except parse.xlm.to.json as e:
-        _metrics.append("# Failed! No rss feed in response.")
+        _metrics.append('p2000_seconds_since_previous_scrape{status="' + _status_code + '",description="no_rss"} ' + str(_seconds_since_previous_scrape))
         return "\n".join(unique(_metrics))
 
-    _metrics.append("# Succesfull rss feed in response.")
+    _metrics.append('p2000_seconds_since_previous_scrape{status="' + _status_code + '",description="succesfull"} ' + str(_seconds_since_previous_scrape))
         
     for _key in _meldingen:
         
@@ -140,11 +154,15 @@ def metrics():
                 _seconds_since_first_alert = _utc_time_last_scrape - _utc_time_event
                 print("_utc_time_event:%s, _utc_time_last_scrape:%s, seconds_since_first_alert:%s\n" % (_utc_time_event,_utc_time_last_scrape,_seconds_since_first_alert))
                 _pubdate=datetime.fromtimestamp(_utc_time_event)
-                #_metrics.append('p2000_seconds_since_event{title="' + _title + '",link="' + _link +'",description="' + _description + '",pubdate="' + _pubdate.replace(' ','_').replace(',','').replace('_+0000','') + '"} ' + str(int(_seconds_since_first_alert)))
+
+                _metrics.append('# HELP p2000_seconds_since_event Number of seconds')
+                _metrics.append('# TYPE p2000_seconds_since_event gauge')
                 _metrics.append('p2000_seconds_since_event{title="' + _title + '",link="' + _link +'",description="' + _description + '",pubdate="' + str(_pubdate) + '"} ' + str(int(_seconds_since_first_alert)))
 
                 _event_counter.update({ _guid:"1"})
 
+    _metrics.append('# HELP p2000_event_counter Number of events')
+    _metrics.append('# TYPE p2000_event_counter counter')
     _metrics.append('p2000_event_counter ' + str(len(_event_counter)))        
     
     return "\n".join(unique(_metrics)) + '\n'

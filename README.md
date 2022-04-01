@@ -63,14 +63,36 @@ p2000_event_counter 2
 
 ````bash
 # curl http://localhost:2000/config
-
-Config
-
-    url: www.alarmeringdroid.nl/rss/d0a55295
-    matches: gouda
-    scrape counter: 3153
-    event counter: 323
-    http_code: 200
-    response time: 0.395585 sec
-    response size: 13025 bytes
 ````
+<a href="https://raw.githubusercontent.com/tedsluis/p2000-exporter/main/media/p2000-3.png"
+ target="_blank"><img src="https://raw.githubusercontent.com/tedsluis/p2000-exporter/main/media/p2000-3.png"
+alt="dashboard1" width="800" height=auto border="10" /></a><br>
+
+### grafana dashboards
+
+<a href="https://raw.githubusercontent.com/tedsluis/p2000-exporter/main/media/p2000-1.png"
+ target="_blank"><img src="https://raw.githubusercontent.com/tedsluis/p2000-exporter/main/media/p2000-1.png"
+alt="dashboard1" width="800" height=auto border="10" /></a><br>
+
+<a href="https://raw.githubusercontent.com/tedsluis/p2000-exporter/main/media/p2000-2.png"
+ target="_blank"><img src="https://raw.githubusercontent.com/tedsluis/p2000-exporter/main/media/p2000-2.png"
+alt="dashboard1" width="800" height=auto border="10" /></a><br>
+
+### Karma
+
+<a href="https://raw.githubusercontent.com/tedsluis/p2000-exporter/main/media/p2000-4.png"
+ target="_blank"><img src="https://raw.githubusercontent.com/tedsluis/p2000-exporter/main/media/p2000-4.png"
+alt="dashboard1" width="800" height=auto border="10" /></a><br>
+
+
+### Prometheus
+
+<a href="https://raw.githubusercontent.com/tedsluis/p2000-exporter/main/media/p2000-5.png"
+ target="_blank"><img src="https://raw.githubusercontent.com/tedsluis/p2000-exporter/main/media/p2000-5.png"
+alt="dashboard1" width="800" height=auto border="10" /></a><br>
+
+### Slack alert
+
+<a href="https://raw.githubusercontent.com/tedsluis/p2000-exporter/main/media/p2000-6.png"
+ target="_blank"><img src="https://raw.githubusercontent.com/tedsluis/p2000-exporter/main/media/p2000-6.png"
+alt="dashboard1" width="400" height=auto border="10" /></a><br>
