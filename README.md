@@ -82,6 +82,8 @@ alt="dashboard1" width="800" height=auto border="10" /></a><br>
 
 ### grafana dashboards
 
+grafana dashboard: https://github.com/tedsluis/dsm-prometheus-grafana/blob/main/roles/dsm/files/dashboard-p2000.json
+
 <a href="https://raw.githubusercontent.com/tedsluis/p2000-exporter/main/media/p2000-1.png"
  target="_blank"><img src="https://raw.githubusercontent.com/tedsluis/p2000-exporter/main/media/p2000-1.png"
 alt="dashboard1" width="800" height=auto border="10" /></a><br>
@@ -92,6 +94,8 @@ alt="dashboard1" width="800" height=auto border="10" /></a><br>
 
 ### Karma
 
+Karma config: https://github.com/tedsluis/dsm-prometheus-grafana/blob/main/roles/dsm/templates/karma.yml.j2
+
 <a href="https://raw.githubusercontent.com/tedsluis/p2000-exporter/main/media/p2000-4.png"
  target="_blank"><img src="https://raw.githubusercontent.com/tedsluis/p2000-exporter/main/media/p2000-4.png"
 alt="dashboard1" width="800" height=auto border="10" /></a><br>
@@ -99,11 +103,16 @@ alt="dashboard1" width="800" height=auto border="10" /></a><br>
 
 ### Prometheus
 
+prometheus rules: https://github.com/tedsluis/dsm-prometheus-grafana/blob/main/roles/dsm/files/rules-p2000.yml
+prometheus config: https://github.com/tedsluis/dsm-prometheus-grafana/blob/main/roles/dsm/templates/prometheus.yml.j2
+
 <a href="https://raw.githubusercontent.com/tedsluis/p2000-exporter/main/media/p2000-5.png"
  target="_blank"><img src="https://raw.githubusercontent.com/tedsluis/p2000-exporter/main/media/p2000-5.png"
 alt="dashboard1" width="800" height=auto border="10" /></a><br>
 
 ### Slack alert
+
+alertmanager config: https://github.com/tedsluis/dsm-prometheus-grafana/blob/main/roles/dsm/templates/alertmanager.yml.j2
 
 <a href="https://raw.githubusercontent.com/tedsluis/p2000-exporter/main/media/p2000-6.png"
  target="_blank"><img src="https://raw.githubusercontent.com/tedsluis/p2000-exporter/main/media/p2000-6.png"
