@@ -79,16 +79,32 @@ def metrics():
     _scrape_counter = _scrape_counter + 1
     _metrics=[]
 
-
     _metrics.append('# HELP p2000_scrape_counter Number of scrapes since exporter started')
     _metrics.append('# TYPE p2000_scrape_counter counter')
     
     try:
-        _resp = requests.get(url=f"https://"+ _url)
+        _resp = requests.get(url=f"https://"+ _url, timeout=5)
+        _resp.raise_for_status()
 
-    except requests.exceptions.RequestException as e:  # This is the correct syntax
-        
-        _metrics.append('p2000_scrape_counter{status="exception"} ' + str(_scrape_counter))
+    except requests.exceptions.HTTPError as errh:
+        print ("Http Error:",errh)
+        _metrics.append('p2000_scrape_counter{status="httpError"} ' + str(_scrape_counter))
+        return "\n".join(unique(_metrics))
+
+    except requests.exceptions.ConnectionError as errc:
+        print ("Error Connecting:",errc)
+        _metrics.append('p2000_scrape_counter{status="connectionError"} ' + str(_scrape_counter))
+        return "\n".join(unique(_metrics))
+
+    except requests.exceptions.Timeout as errt:
+        print ("Timeout Error:",errt)
+        _metrics.append('p2000_scrape_counter{status="Timeout"} ' + str(_scrape_counter))
+        return "\n".join(unique(_metrics))
+
+    except requests.exceptions.RequestException as err:
+        print ("OOps: Something Else",err)
+        _metrics.append('p2000_scrape_counter{status="requestException"} ' + str(_scrape_counter))
+        return "\n".join(unique(_metrics))
 
     try: 
         _status_code = str(_resp.status_code)
