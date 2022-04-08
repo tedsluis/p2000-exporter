@@ -1,4 +1,6 @@
-from flask import Flask
+from ast import Continue
+from urllib import request
+from flask import Flask, request
 import requests
 import xmltodict
 import json
@@ -10,7 +12,7 @@ def help():
     print("\nHelp\n")
     print("Execute:")
     print("    exporter.py [-u <url>|--url=<url>] \ ")
-    print("                [-m <location>[,<location>]|--filter=<location>[,<location>]] \ ")
+    print("                [-f <location>[,<location>]|--filter=<location>[,<location>]] \ ")
     print("                [-p <port>|--port=<port>] \ ")
     print("                [-h|--help]")
     print("    exporter.py --url=www.alarmeringdroid.nl/rss/d0a55295 \ ")
@@ -18,7 +20,7 @@ def help():
     print("                --port=2000\n")
     print("Endpoints:")
     print("    # curl http://127.0.0.1:2000/metrics")
-    print("    # curl http://127.0.0.1:2000/config\n")
+    print("    # curl http://127.0.0.1:2000/status\n")
     print("notes:")
     print("    Get your own rss url at https://www.alarmeringdroid.nl/rssbuilder")
     print("    --filter is a list of locations.")
@@ -48,15 +50,73 @@ def parameters(argv):
     print ('port is:', _port)
     return (_url,_filter,_port)
 
-_url,_filter,_port = parameters(sys.argv[1:])
-print("filter: %s, url: %s, port: %s\n" % (_filter,_url,_port))
+_url_cmd,_filter_cmd,_port = parameters(sys.argv[1:])
+print("filter: %s, url: %s, port: %s\n" % (_filter_cmd,_url_cmd,_port))
 
+_url_url = ''
+_filter_url = ['']
 _scrape_counter = 0
 _event_counter = {}
 _response_time = ""
 _status_code = ""
 _response_size = ""
 _utc_time_last_scrape = datetime.now().timestamp()
+
+_css = '''    <style>
+    div.navbar {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        background-color: #343a40;
+        font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+        font-size: 1.5rem;
+        font-weight: 400;
+        line-height: 1.5;
+        color: #212529;
+        text-align: left;
+        padding: 10px;    
+    }
+    .white {
+    	color: #ffff;
+        text-decoration: none; 
+    }
+    .white:hover {
+    	color: #c2c2d6;
+    }
+    .gray {
+    	color: #c2c2d6;
+        text-decoration: none; 
+    }
+    .gray:hover {
+    	color: #ffff;
+    }
+    lu {
+    	padding: 10px;
+    }
+    div.bottom {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+    }
+    div.content {
+        position: relative;
+        top: 100px;
+        right: 10px;
+        left: 10px;
+        font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.5;
+        color: #212529;
+        text-align: left;
+        padding: 10px;    
+    }
+    </style>'''
+
+_bottom = '''    <div class="bottom">
+        <a href="https://github.com/tedsluis/p2000-exporter">https://github.com/tedsluis/p2000-exporter</a>
+    </div>'''
 
 def unique(_list):
     _unique_list = []
@@ -66,8 +126,33 @@ def unique(_list):
     return _unique_list
 
 app = Flask(__name__)
+
+@app.route('/', methods=['GET', 'POST'])
+def home():
+    _home = '''<!DOCTYPE html>
+<html>
+<head>
+''' + _css + '''
+</head>
+<body>
+    <div class="navbar">
+        <lu><a class="white" href="/">P2000-exporter</a></lu>
+        <lu><a class="gray" href="/status">status</a></lu>
+        <lu><a class="gray" href="/metrics">metrics</a></lu>
+        <lu><a class="gray" href="https://github.com/tedsluis/p2000-exporter">help</a></lu>
+    </div>
+    <div class="content">
+        ..........
+    </div>
+''' + _bottom + '''
+</body>
+</html>
+'''
+    return _home
+
 @app.route('/metrics', methods=['GET', 'POST'])
 def metrics():
+    _args = request.args
 
     global _scrape_counter
     global _event_counter
@@ -75,6 +160,40 @@ def metrics():
     global _status_code
     global _response_size
     global _utc_time_last_scrape
+    global _filter_url
+    global _url_url
+
+    for _arg_key, _arg_value in _args.items():
+        print("k: %s v: %s \n" % (_arg_key,_arg_value))
+
+    try:
+        _filter_url = _args.get('filter','').split(',')
+        print('FILTER: %s' % _filter_url)
+    except:
+        print('no filter \n')
+        pass
+
+    try:
+        _url_url = _args.get('url','')
+        print('URL: %s' % _url_url)
+    except:
+        print('no url \n')
+        pass
+
+    print('url - URL: %s  FILTER: %s' % (_url_url,_filter_url))
+    print('cmd - URL: %s  FILTER: %s' % (_url_cmd,_filter_cmd))
+
+    if _url_url != '':
+        _url = _url_url
+    else:
+        _url = _url_cmd
+
+    if _filter_url != '':
+        _filter = _filter_url
+    else:
+        _filter = _filter_cmd
+        
+    print('eff - URL: %s  FILTER: %s' % (_url,_filter))
 
     _scrape_counter = _scrape_counter + 1
     _metrics=[]
@@ -183,45 +302,91 @@ def metrics():
     
     return "\n".join(unique(_metrics)) + '\n'
 
-@app.route('/config', methods=['GET', 'POST'])
-def config():
+@app.route('/status', methods=['GET', 'POST'])
+def status():
     _seconds_since_previous_scrape = datetime.now().timestamp() - _utc_time_last_scrape
-    _config = '''<!DOCTYPE html>
+    _status = '''<!DOCTYPE html>
 <html>
-    <div width: 100%;>
-        <h2>
-            <a href="/metrics">p2000-exporter (1/1 up)</a>
-        </h2>
+<head>
+''' + _css + '''
+</head>
+<body>
+    <div class="navbar">
+        <lu><a class="gray" href="/">P2000-exporter</a></lu>
+        <lu><a class="white" href="/status">status</a></lu>
+        <lu><a class="gray" href="/metrics">metrics</a></lu>
+        <lu><a class="gray" href="https://github.com/tedsluis/p2000-exporter">help</a></lu>
+    </div>
+    <div class="content"; width: 100%;>
+        <h1>
+            <a href="/metrics">scrape status</a>
+        </h1>
         <table border="1" bordercolor=gray cellpadding="3" cellspacing="0" style="width: 100%" >
             <thead>
                 <tr align="left">
-                    <th>Endpoint</th>
-                    <th>HTTP status code</th>
                     <th>Last scrape</th>
-                    <th>Response time</th>
-                    <th>Response size</th>
                     <th>Scrape count</th>
-                    <th>Event count</th>
-                    <th>filter</th>
                 </tr>
             </thead>
             <tbody>
                 <tr bgcolor="#dee2e6">
-                    <td><a href="https://''' + _url +'''">https://''' + _url + '''</a><br></td>
-                    <td>''' + _status_code + '''</td>
                     <td>''' + str(_seconds_since_previous_scrape) + ''' sec ago</td>
-                    <td>''' + _response_time + ''' sec</td>
-                    <td>''' + _response_size + ''' bytes</td>
                     <td>''' + str(_scrape_counter) + '''</td>
-                    <td>''' + str(len(_event_counter)) + '''</td>
-                    <td>''' + ",".join(_filter) + '''</td>
                 </tr>
             </tbody>
         </table>
+
+        <h1>
+            <a href="/metrics">target status</a>
+        </h1>
+        <table border="1" bordercolor=gray cellpadding="3" cellspacing="0" style="width: 100%" >
+            <thead>
+                <tr align="left">
+                    <th>Endpoint (passed using command line)</th>
+                    <th>Endpoint (passed using url)</th>
+                    <th>HTTP status code</th>
+                    <th>Response time</th>
+                    <th>Response size</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr bgcolor="#dee2e6">
+                    <td><a href="https://''' + _url_cmd +'''">https://''' + _url_cmd + '''</a><br></td>
+                    <td><a href="https://''' + _url_url +'''">https://''' + _url_url + '''</a><br></td>
+                    <td>''' + _status_code + '''</td>
+                    <td>''' + _response_time + ''' sec</td>
+                    <td>''' + _response_size + ''' bytes</td>
+                </tr>
+            </tbody>
+        </table>
+
+
+        <h1>
+            <a href="/metrics">event status</a>
+        </h1>
+        <table border="1" bordercolor=gray cellpadding="3" cellspacing="0" style="width: 100%" >
+            <thead>
+                <tr align="left">
+                    <th>Event count</th>
+                    <th>filter (passed using command line)</th>
+                    <th>filter (passed using url)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr bgcolor="#dee2e6">
+                    <td>''' + str(len(_event_counter)) + '''</td>
+                    <td>''' + ",".join(_filter_cmd) + '''</td>
+                    <td>''' + ",".join(_filter_url) + '''</td>
+                </tr>
+            </tbody>
+        </table>
+
     </div>
+''' + _bottom + '''
+<body>
 </html>
 '''
-    return _config
+    return _status
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=_port)
