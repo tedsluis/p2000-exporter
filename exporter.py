@@ -188,7 +188,7 @@ def metrics():
     else:
         _url = _url_cmd
 
-    if _filter_url != '':
+    if "".join(_filter_url) != '':
         _filter = _filter_url
     else:
         _filter = _filter_cmd
@@ -197,6 +197,8 @@ def metrics():
 
     _scrape_counter = _scrape_counter + 1
     _metrics=[]
+    _status =""
+    _utc_time_start_scrape = datetime.now().timestamp()
 
     _metrics.append('# HELP p2000_scrape_counter Number of scrapes since exporter started')
     _metrics.append('# TYPE p2000_scrape_counter counter')
@@ -207,49 +209,67 @@ def metrics():
 
     except requests.exceptions.HTTPError as errh:
         print ("Http Error:",errh)
-        _metrics.append('p2000_scrape_counter{status="httpError"} ' + str(_scrape_counter))
-        return "\n".join(unique(_metrics))
+        _status = "httpError"
+        pass
 
     except requests.exceptions.ConnectionError as errc:
         print ("Error Connecting:",errc)
-        _metrics.append('p2000_scrape_counter{status="connectionError"} ' + str(_scrape_counter))
-        return "\n".join(unique(_metrics))
+        _status = "connectionError"
+        pass
 
     except requests.exceptions.Timeout as errt:
         print ("Timeout Error:",errt)
-        _metrics.append('p2000_scrape_counter{status="Timeout"} ' + str(_scrape_counter))
-        return "\n".join(unique(_metrics))
+        _status = "Timeout"
+        pass
 
     except requests.exceptions.RequestException as err:
         print ("OOps: Something Else",err)
-        _metrics.append('p2000_scrape_counter{status="requestException"} ' + str(_scrape_counter))
-        return "\n".join(unique(_metrics))
+        _status = "requestException"
+        pass
 
     try: 
         _status_code = str(_resp.status_code)
     except:
-        _metrics.append('p2000_scrape_counter{status="failed"} ' + str(_scrape_counter))
-        return "\n".join(unique(_metrics))
+        print('unable to get http code')
+        if _status != "":
+            _status_code = _status
+        else:
+            _status_code = "failed"
+        pass
 
+    print('_status_code: %s' % _status_code)
     _metrics.append('p2000_scrape_counter{status="' + _status_code + '"} ' + str(_scrape_counter))
 
-    _response_time = str(_resp.elapsed.microseconds / 1000000)
+    try:
+        _response_time = str(_resp.elapsed.microseconds / 1000000)
+        print('_response_time1: %s' % _response_time)
+    except:
+        _response_time = str(datetime.now().timestamp() - _utc_time_start_scrape)
+        print('_response_time2: %s' % _response_time)
+        pass
+
     _metrics.append('# HELP p2000_scrape_response_time_seconds Number of seconds elapsed')
     _metrics.append('# TYPE p2000_scrape_response_time_seconds gauge')
     _metrics.append('p2000_scrape_response_time_seconds{status="' + _status_code + '"} ' + _response_time)
     
-    
-    _response_size = str(len(_resp.text))
+    try:
+        _response_size = str(len(_resp.text))
+    except:
+        _response_size = "0"
+
+    print('_response_size: %s' % _response_size)
+
     _metrics.append('# HELP p2000_scrape_response_size_bytes Number of bytes')
     _metrics.append('# TYPE p2000_scrape_response_size_bytes gauge')
     _metrics.append('p2000_scrape_response_size_bytes{status="' + _status_code + '"} ' + _response_size)
     
     _seconds_since_previous_scrape = datetime.now().timestamp() - _utc_time_last_scrape
+    print('_seconds_since_previous_scrape: %s' % _seconds_since_previous_scrape)
     _utc_time_last_scrape =  datetime.now().timestamp()
     _metrics.append("# HELP p2000_seconds_since_previous_scrape Number of seconds")
     _metrics.append("# TYPE p2000_seconds_since_previous_scrape gauge")
 
-    if not search('^2\d*', str(_resp.status_code)):
+    if not search('^2\d*', _status_code):
         _metrics.append('p2000_seconds_since_previous_scrape{status="' + _status_code + '",description="failed"} ' + str(_seconds_since_previous_scrape))
         return "\n".join(unique(_metrics))
 
@@ -305,6 +325,23 @@ def metrics():
 @app.route('/status', methods=['GET', 'POST'])
 def status():
     _seconds_since_previous_scrape = datetime.now().timestamp() - _utc_time_last_scrape
+    
+    _filter = ""
+    if "".join(_filter_url) != "" and "".join(_filter_cmd) != "":
+        _filter = ",".join(_filter_url) + " (url)<br><del>" + ",".join(_filter_cmd) + "</del> (cmd line)"
+    elif "".join(_filter_url) != "":
+        _filter = ",".join(_filter_url) + " (url)"
+    elif "".join(_filter_cmd) != "":
+        _filter = ",".join(_filter_cmd) + " (cmd line)"
+
+    _url = ""
+    if _url_url != "" and _url_cmd != "":
+        _url = _url_url + " (url)<br><del>" + _url_cmd + "</del> (cmd line)"
+    elif _url_url != "":
+        _url = _url_url + " (url)"
+    elif _url_cmd != "":
+        _url = _url_cmd + " (cmd line)"
+
     _status = '''<!DOCTYPE html>
 <html>
 <head>
@@ -342,8 +379,7 @@ def status():
         <table border="1" bordercolor=gray cellpadding="3" cellspacing="0" style="width: 100%" >
             <thead>
                 <tr align="left">
-                    <th>Endpoint (passed using command line)</th>
-                    <th>Endpoint (passed using url)</th>
+                    <th>Endpoint</th>
                     <th>HTTP status code</th>
                     <th>Response time</th>
                     <th>Response size</th>
@@ -351,8 +387,7 @@ def status():
             </thead>
             <tbody>
                 <tr bgcolor="#dee2e6">
-                    <td><a href="https://''' + _url_cmd +'''">https://''' + _url_cmd + '''</a><br></td>
-                    <td><a href="https://''' + _url_url +'''">https://''' + _url_url + '''</a><br></td>
+                    <td>''' + _url + '''</td>
                     <td>''' + _status_code + '''</td>
                     <td>''' + _response_time + ''' sec</td>
                     <td>''' + _response_size + ''' bytes</td>
@@ -368,15 +403,13 @@ def status():
             <thead>
                 <tr align="left">
                     <th>Event count</th>
-                    <th>filter (passed using command line)</th>
-                    <th>filter (passed using url)</th>
+                    <th>filter</th>
                 </tr>
             </thead>
             <tbody>
                 <tr bgcolor="#dee2e6">
                     <td>''' + str(len(_event_counter)) + '''</td>
-                    <td>''' + ",".join(_filter_cmd) + '''</td>
-                    <td>''' + ",".join(_filter_url) + '''</td>
+                    <td>''' + _filter + '''</td>
                 </tr>
             </tbody>
         </table>
