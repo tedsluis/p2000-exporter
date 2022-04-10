@@ -1,4 +1,5 @@
 from ast import Continue
+from ctypes import util
 from urllib import request
 from flask import Flask, request
 import requests
@@ -7,6 +8,7 @@ import json
 from re import search
 from datetime import datetime
 import getopt, sys
+import time
 
 def help():
     print("\nHelp\n")
@@ -198,46 +200,56 @@ def metrics():
     _scrape_counter = _scrape_counter + 1
     _metrics=[]
     _status =""
+    _retry = 0
     _utc_time_start_scrape = datetime.now().timestamp()
 
     _metrics.append('# HELP p2000_scrape_counter Number of scrapes since exporter started')
     _metrics.append('# TYPE p2000_scrape_counter counter')
     
-    try:
-        _resp = requests.get(url=f"https://"+ _url, timeout=5)
-        _resp.raise_for_status()
+    while (not search('^2\d*', _status)) and ((datetime.now().timestamp() -_utc_time_start_scrape) < 6):
 
-    except requests.exceptions.HTTPError as errh:
-        print ("Http Error:",errh)
-        _status = "httpError"
-        pass
+        try:
+            _resp = requests.get(url=f"https://"+ _url, timeout=1)
+            _resp.raise_for_status()
 
-    except requests.exceptions.ConnectionError as errc:
-        print ("Error Connecting:",errc)
-        _status = "connectionError"
-        pass
+        except requests.exceptions.HTTPError as errh:
+            print ("Http Error:",errh)
+            _status = "httpError"
+            pass
 
-    except requests.exceptions.Timeout as errt:
-        print ("Timeout Error:",errt)
-        _status = "Timeout"
-        pass
+        except requests.exceptions.ConnectionError as errc:
+            print ("Error Connecting:",errc)
+            _status = "connectionError"
+            pass
 
-    except requests.exceptions.RequestException as err:
-        print ("OOps: Something Else",err)
-        _status = "requestException"
-        pass
+        except requests.exceptions.Timeout as errt:
+            print ("Timeout Error:",errt)
+            _status = "Timeout"
+            pass
 
-    try: 
-        _status_code = str(_resp.status_code)
-    except:
-        print('unable to get http code')
-        if _status != "":
-            _status_code = _status
+        except requests.exceptions.RequestException as err:
+            print ("OOps: Something Else",err)
+            _status = "requestException"
+            pass
+
+        try: 
+            _status_code = str(_resp.status_code)
+            print('STATUS: %s' % _status_code)
+        except:
+            print('unable to get http code')
+            if _status != "":
+                _status_code = _status
+            else:
+                _status_code = "failed"
+            pass
         else:
-            _status_code = "failed"
-        pass
+            break
 
-    print('_status_code: %s' % _status_code)
+        time.sleep(1)
+        _retry = _retry + 1 
+    
+
+    print('_status_code: %s, retry: %s' % (_status_code,_retry))
     _metrics.append('p2000_scrape_counter{status="' + _status_code + '"} ' + str(_scrape_counter))
 
     try:
