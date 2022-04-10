@@ -206,10 +206,10 @@ def metrics():
     _metrics.append('# HELP p2000_scrape_counter Number of scrapes since exporter started')
     _metrics.append('# TYPE p2000_scrape_counter counter')
     
-    while (not search('^2\d*', _status)) and ((datetime.now().timestamp() -_utc_time_start_scrape) < 6):
+    while (not search('^2\d*', _status)) and ((datetime.now().timestamp() -_utc_time_start_scrape) < 15):
 
         try:
-            _resp = requests.get(url=f"https://"+ _url, timeout=1)
+            _resp = requests.get(url=f"https://"+ _url, timeout=3)
             _resp.raise_for_status()
 
         except requests.exceptions.HTTPError as errh:
@@ -236,7 +236,7 @@ def metrics():
             _status_code = str(_resp.status_code)
             print('STATUS: %s' % _status_code)
         except:
-            print('unable to get http code')
+            print('unable to get http code, status: %s' % _status)
             if _status != "":
                 _status_code = _status
             else:
