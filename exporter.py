@@ -206,10 +206,10 @@ def metrics():
     _metrics.append('# HELP p2000_scrape_counter Number of scrapes since exporter started')
     _metrics.append('# TYPE p2000_scrape_counter counter')
     
-    while (not search('^2\d*', _status)) and ((datetime.now().timestamp() -_utc_time_start_scrape) < 15):
-
+    while (not search('^2\d*', _status)) and ((datetime.now().timestamp() -_utc_time_start_scrape) < 25):
+        _timeout = (3 + _retry * 2)
         try:
-            _resp = requests.get(url=f"https://"+ _url, timeout=3)
+            _resp = requests.get(url=f"https://"+ _url, timeout=_timeout)
             _resp.raise_for_status()
 
         except requests.exceptions.HTTPError as errh:
