@@ -247,7 +247,6 @@ def metrics():
 
         time.sleep(1)
         _retry = _retry + 1 
-    
 
     print('_status_code: %s, retry: %s' % (_status_code,_retry))
     _metrics.append('p2000_scrape_counter{status="' + _status_code + '"} ' + str(_scrape_counter))
